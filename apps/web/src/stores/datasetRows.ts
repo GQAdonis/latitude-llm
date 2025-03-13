@@ -32,16 +32,20 @@ export default function useDatasetRows(
     page,
     pageSize,
     onFetched,
+    enabled = true,
   }: {
     dataset?: DatasetV2
     page?: string | null | undefined
     pageSize?: string | null
     onFetched?: (datasets: ClientDatasetRow[]) => void
+    enabled?: boolean
   },
   opts?: SWRConfiguration,
 ) {
+  const isEnabled = dataset && enabled
+  console.log('FETCH_ROWS_ENABLED', isEnabled)
   const fetcher = useFetcher(
-    dataset ? ROUTES.api.datasetsRows.root : undefined,
+    isEnabled ? ROUTES.api.datasetsRows.root : undefined,
     {
       serializer: dataset ? serializeRows(dataset.columns) : undefined,
       searchParams: compactObject({
@@ -56,7 +60,7 @@ export default function useDatasetRows(
     mutate,
     ...rest
   } = useSWR<ClientDatasetRow[]>(
-    dataset
+    isEnabled
       ? buildDatasetRowKey({ datasetId: dataset.id, page, pageSize })
       : undefined,
     fetcher,

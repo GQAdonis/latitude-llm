@@ -53,14 +53,18 @@ export function useDatasetRowsForParameters({
   dataset,
   enabled,
   metadata,
+  datasetIsReady,
 }: {
   document: DocumentVersion
   commitVersionUuid: string
   dataset: DatasetV2 | null | undefined
   enabled?: boolean
   metadata: ConversationMetadata | undefined
+  datasetIsReady: boolean
 }) {
-  const fetchedPosition = useRef(false)
+  const hasInitialized = useRef(false)
+  const datasetIdRef = useRef(dataset?.id)
+  const [fetchedPosition, setFetchedPosition] = useState(false)
   const rowCellOptions = useMemo<SelectOption<string>[]>(
     () =>
       dataset?.columns.map((c) => ({ value: c.identifier, label: c.name })) ??
@@ -89,21 +93,37 @@ export function useDatasetRowsForParameters({
     getInitialPosition(selectedDatasetRowId),
   )
 
-  const datasetIdRef = useRef(dataset?.id)
   const resetPosition = useCallback((datasetId: number | undefined) => {
     datasetIdRef.current = datasetId
-    fetchedPosition.current = false
+    setFetchedPosition(false)
     setPosition(getInitialPosition(undefined))
     setSelectedDatasetRowId(undefined)
   }, [])
 
-  if (dataset?.id !== datasetIdRef.current) {
-    resetPosition(dataset?.id)
-  }
+  useEffect(() => {
+    // Important useEffect
+    // Takes care of reseting the state of the hook when the dataset changes
+    if (!datasetIsReady) return
+
+    const currentId = dataset?.id
+    const previousId = datasetIdRef.current
+
+    // First run → set the ref but don't reset
+    if (!hasInitialized.current) {
+      datasetIdRef.current = currentId
+      hasInitialized.current = true
+      return
+    }
+
+    // If it changed (even from undefined), reset
+    if (currentId !== previousId) {
+      resetPosition(currentId)
+    }
+  }, [datasetIsReady, dataset?.id, resetPosition])
 
   const onFetchPosition = useCallback(
     (data: WithPositionData) => {
-      fetchedPosition.current = true
+      setFetchedPosition(true)
       setPosition(data)
     },
     [selectedDatasetRowId, document.datasetV2Id],
@@ -111,13 +131,15 @@ export function useDatasetRowsForParameters({
 
   const { isLoading: isLoadingPosition } = useDatasetRowWithPosition({
     dataset: enabled && dataset ? dataset : undefined,
-    enabled: !fetchedPosition.current,
+    enabled:
+      !fetchedPosition && !!selectedDatasetRowId && selectedDatasetRowId > 0,
     datasetRowId: selectedDatasetRowId,
     onFetched: onFetchPosition,
   })
 
   const { data: datasetRows, isLoading: isLoadingRow } = useDatasetRows({
     dataset: position && dataset ? (dataset as DatasetV2) : undefined,
+    enabled: fetchedPosition,
     page: String(position?.position),
     pageSize: '1', // Paginatinate one by one in document parameters
     onFetched: async (data) => {
@@ -135,7 +157,6 @@ export function useDatasetRowsForParameters({
     },
   })
   const datasetRow = datasetRows?.[0]
-
   const updatePosition = useCallback(
     (position: number) => {
       if (isLoadingRow) return
