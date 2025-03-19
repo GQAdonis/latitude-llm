@@ -4,13 +4,14 @@ import * as models from '@latitude-data/core/schema'
 import { setupReplHistory } from './replHistory'
 import * as loadModules from './replReload'
 
-const env = process.env.NODE_ENV || 'development'
+const hasDatabaseURL = process.env.DATABASE_URL
 const redColor = (text: string) => `\x1b[31m${text}\x1b[0m`
 const blueColor = (text: string) => `\x1b[34m${text}\x1b[0m`
 const label =
-  env === 'production'
-    ? redColor(`latitude (${env})`)
-    : blueColor(`latitude (${env})`)
+  hasDatabaseURL
+    ? redColor(`latitude (production)`)
+    : blueColor(`latitude (development)`)
+
 const r = repl.start({
   prompt: `${label} `,
   breakEvalOnSigint: true,
