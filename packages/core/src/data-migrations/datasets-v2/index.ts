@@ -41,6 +41,10 @@ export async function migrateDatasetsV1ToV2({
     const result = await workspaceMigrator({
       workspace: workspace as Workspace,
     })
+    const migratedDatasets = result.migratedDatasets ?? []
+    console.log(
+      `WorkspaceId: ${result.workspaceId} Migrated ${migratedDatasets.length} datasets and Errors: ${result.errors.length}`,
+    )
     results.push(result)
   }
 

@@ -26,9 +26,10 @@ export async function getCsvAndBuildColumns({
     delimiter: csvDelimiter,
   })
 
-  if (readCsvResult.error) return readCsvResult
+  if (readCsvResult.error) return Result.error(readCsvResult.error)
 
-  const uniqueHeaders = new Set(readCsvResult.value.headers)
+  const headers = readCsvResult.value?.headers ?? []
+  const uniqueHeaders = new Set(headers)
 
   if (uniqueHeaders.size === 0) {
     return Result.error(new BadRequestError('CSV file must contain headers'))

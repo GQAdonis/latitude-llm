@@ -43,7 +43,6 @@ export default function useDatasetRows(
   opts?: SWRConfiguration,
 ) {
   const isEnabled = dataset && enabled
-  console.log('FETCH_ROWS_ENABLED', isEnabled)
   const fetcher = useFetcher(
     isEnabled ? ROUTES.api.datasetsRows.root : undefined,
     {

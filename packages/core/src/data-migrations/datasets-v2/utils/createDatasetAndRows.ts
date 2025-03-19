@@ -96,6 +96,16 @@ export async function createDatasetAndRows(
   }
 
   const columns = columnsResult.value
+
+  if (!columns || columns.length <= 0) {
+    return {
+      migrationResult: baseResponse,
+      errors: [
+        `Error creating columns for dataset V1 ${datasetV1.id}: Columns are empty`,
+      ],
+    }
+  }
+
   const datasetResult = await createDataset(
     {
       workspace,
@@ -116,6 +126,8 @@ export async function createDatasetAndRows(
       ],
     }
   }
+
+  console.log('.')
 
   const dataset = datasetResult.value
   let errors: string[] = []

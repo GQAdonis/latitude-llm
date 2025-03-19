@@ -64,6 +64,11 @@ export async function migrateWorkspaceDatasetsToV2(
     db,
   )
 
+  console.log(
+    `${allDatasets.length} datasets found in workspace ${workspace.id}`,
+  )
+  console.log('Starting migration...')
+
   const allResult = allDatasets.map(async (datasetV1) => {
     const createResult = await createDatasetAndRows(
       {
@@ -102,6 +107,14 @@ export async function migrateWorkspaceDatasetsToV2(
       console.error('Error migrating documents: ', updatedDocumentsResult.error)
       return {
         ...createResult,
+        migrationResult: {
+          ...createResult.migrationResult,
+          datasetV2: {
+            model: dataset,
+            rowCount: createResult.migrationResult.datasetV2?.rowCount ?? 0,
+            documents: [],
+          },
+        },
         errors: [...createResult.errors, updatedDocumentsResult.error.message],
       }
     }
@@ -123,6 +136,22 @@ export async function migrateWorkspaceDatasetsToV2(
   })
 
   const results = await Promise.all(allResult)
+
+  console.log(`Migration finished for workspace ${workspace.id}!`)
+  const errors = results.reduce((acc, result) => {
+    acc += result.errors.length
+    return acc
+  }, 0)
+  console.log(`Errors: ${errors} found`)
+  const datasetsV2Created = results.reduce((acc, result) => {
+    acc += result.migrationResult.datasetV2 ? 1 : 0
+    return acc
+  }, 0)
+
+  console.log(
+    `Datasets V2 created: ${datasetsV2Created}, the workspace has ${allDatasets.length} datasets.`,
+  )
+
   const aggregatedResults = results.reduce(
     (acc, result) => {
       acc.errors.push(...result.errors)
