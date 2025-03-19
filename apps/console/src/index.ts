@@ -7,10 +7,9 @@ import * as loadModules from './replReload'
 const hasDatabaseURL = process.env.DATABASE_URL
 const redColor = (text: string) => `\x1b[31m${text}\x1b[0m`
 const blueColor = (text: string) => `\x1b[34m${text}\x1b[0m`
-const label =
-  hasDatabaseURL
-    ? redColor(`latitude (production)`)
-    : blueColor(`latitude (development)`)
+const label = hasDatabaseURL
+  ? redColor(`latitude (production)`)
+  : blueColor(`latitude (development)`)
 
 const r = repl.start({
   prompt: `${label} `,
