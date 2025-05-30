@@ -18,6 +18,12 @@ const LANGFUSE_MCP_CONFIG: HostedIntegrationConfig = {
       placeholder: 'your-secret-key',
       required: true,
     },
+    LANGFUSE_BASE_URL: {
+      label: 'Langfuse Base URL (optional)',
+      description: 'For self-hosted Langfuse instances. Leave empty to use Langfuse cloud.',
+      placeholder: 'https://your-langfuse-instance.com',
+      required: false,
+    },
   },
 }
 

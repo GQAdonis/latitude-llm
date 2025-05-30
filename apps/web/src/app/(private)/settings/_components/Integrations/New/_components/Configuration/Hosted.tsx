@@ -24,20 +24,28 @@ export function HostedIntegrationConfiguration({
           {environmentValues.description}
         </Text.H6>
       )}
-      {envVars.map(([key, value], idx) => (
-        <Input
-          key={idx}
-          required={value.required}
-          type='text'
-          name={buildConfigFieldName({
-            fieldNamespace: key,
-            namespace: '[configuration][env]',
-          })}
-          label={value.label}
-          description={value.description}
-          placeholder={value.placeholder}
-        />
-      ))}
+      {envVars.map(([key, value], idx) => {
+        // Determine if this field should be treated as a URL input
+        const isUrlField = key.toLowerCase().includes('url') ||
+                          key.toLowerCase().includes('base_url') ||
+                          value.placeholder?.startsWith('https://') ||
+                          value.placeholder?.startsWith('http://')
+        
+        return (
+          <Input
+            key={idx}
+            required={value.required}
+            type={isUrlField ? 'url' : 'text'}
+            name={buildConfigFieldName({
+              fieldNamespace: key,
+              namespace: '[configuration][env]',
+            })}
+            label={value.label}
+            description={value.description}
+            placeholder={value.placeholder}
+          />
+        )
+      })}
       {environmentValues?.envSource && (
         <Link href={environmentValues.envSource} target='_blank'>
           <Button
